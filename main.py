@@ -63,30 +63,16 @@ def mostrar_menu(stdscr, opciones, seleccion, mensaje=""):
     stdscr.addstr("\n" + mensaje)  # Mensaje de estado
     stdscr.refresh()
 
-def animar_verificacion(stdscr):
-    # Animar "Checking..."
-    animation = ["Checking.", "Checking..", "Checking..."]
-    idx = 0
-    while checking:
-        mostrar_menu(stdscr, opciones, seleccion, animation[idx])
-        stdscr.refresh()
-        time.sleep(0.5)  # Espera antes de actualizar el mensaje
-        idx = (idx + 1) % len(animation)
-    mostrar_menu(stdscr, opciones, seleccion, "Script Loaded")
-
 def main(stdscr):
-    global checking
     curses.curs_set(0)
     stdscr.nodelay(1)
     stdscr.timeout(100)
     
-    global opciones
     opciones = [
         "Habilitar Administrador de tareas.",
         "Habilitar CMD (Símbolo de sistema)."
     ]
     seleccion = 0
-    checking = False
 
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK) # Color blanco para el texto y los corchetes
     curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Color amarillo para "+"
@@ -102,19 +88,21 @@ def main(stdscr):
             seleccion = (seleccion - 1) % len(opciones)
         elif tecla == 10:  # Enter
             stdscr.clear()
-            checking = True
-            stdscr.refresh()
-            # Ejecutar la acción correspondiente y animar "Checking..."
-            comando = ['regedit', '/s', 'script.reg'] if seleccion == 0 else ['regedit', '/s', 'script2.reg']
             mensaje = "Habilitando Administrador de tareas." if seleccion == 0 else "Habilitando CMD (Símbolo de sistema)."
+            mostrar_menu(stdscr, opciones, seleccion, "Checking...")
+            stdscr.refresh()
+            # Ejecutar la acción correspondiente
+            comando = ['regedit', '/s', 'script.reg'] if seleccion == 0 else ['regedit', '/s', 'script2.reg']
             try:
                 subprocess.Popen(comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                animar_verificacion(stdscr)
                 # Aquí puedes verificar si el script se ejecutó correctamente
-                checking = False
+                mostrar_menu(stdscr, opciones, seleccion, "Script Loaded")
+                stdscr.refresh()
+                time.sleep(2)  # Mostrar "Script Loaded" por un momento antes de continuar
             except Exception as e:
                 mostrar_menu(stdscr, opciones, seleccion, f"Error al habilitar: {e}")
                 stdscr.refresh()
                 stdscr.getch()  # Espera una tecla para cerrar
 
 curses.wrapper(main)
+
