@@ -1,0 +1,5 @@
+pip install requests
+
+pip install curses
+
+pip install tqdm
